@@ -13,3 +13,4 @@ _Fast, Simple and Powerful report generator in any format PDF, DOCX, XLSX, ODT, 
 _... using your JSON data as input._
 
 See [carbone.io website](https://carbone.io) for full **Carbone** documentation.
+
