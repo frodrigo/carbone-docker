@@ -45,7 +45,7 @@ function configureSmtp() {
   const pass = process.env.SMTP_PASSWORD;
 
   const host = process.env.SMTP_HOST;
-  const port = process.env.SMTP_PORT && parseInt(process.env.SMTP_PORT);
+  const port = parseInt(process.env.SMTP_PORT);
 
   const unsafe = process.env.SMTP_UNSAFE;
 
