@@ -165,24 +165,26 @@ app.post("/render", upload.single(`template`), async (req, res) => {
   if (req.body.email) {
     try {
       const email = JSON.parse(req.body.email);
-      if (!Array.isArray(email.to)) {
+      const { to, subject, text } = email;
+
+      if (!Array.isArray(to)) {
         throw new Error(`email.to is not an array`);
       }
-      if (email.to.some(entry => typeof entry !== "string")) {
+      if (to.some(entry => typeof entry !== "string")) {
         throw new Error(`email.to contains non-string entries`);
       }
-      if (!email.subject || !(typeof email.subject === "string")) {
+      if (typeof subject !== "string") {
         throw new Error(`email.subject is missing or not a string`);
       }
-      if (!email.subject || !(typeof email.subject === "string")) {
+      if (typeof text !== "string") {
         throw new Error(`email.text is missing or not a string`);
       }
 
-      if (email.to.length > 0) {
+      if (to.length > 0) {
         await transport.sendMail({
-          to: email.to,
-          subject: email.subject,
-          text: email.text,
+          to,
+          subject,
+          text,
           attachments: [
             {
               filename: "report.pdf",
