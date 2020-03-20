@@ -187,7 +187,7 @@ app.post("/render", upload.single(`template`), async (req, res) => {
           text,
           attachments: [
             {
-              filename: "report.pdf",
+              filename: options.outputName,
               content: report
             }
           ]
