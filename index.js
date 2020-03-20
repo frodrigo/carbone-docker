@@ -68,7 +68,9 @@ function configureSmtp() {
 
 const config = configureSmtp();
 
-const transport = nodemailer.createTransport(config.smtp);
+const transport = nodemailer.createTransport(config.smtp, {
+  from: config.user
+});
 
 const storage = configureStorage(process.env.STORAGE_PATH);
 
@@ -178,7 +180,6 @@ app.post("/render", upload.single(`template`), async (req, res) => {
 
       if (email.to.length > 0) {
         await transport.sendMail({
-          from: config.user,
           to: email.to,
           subject: email.subject,
           text: email.text,
