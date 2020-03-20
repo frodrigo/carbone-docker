@@ -1,4 +1,4 @@
-FROM node:8
+FROM node:12
 
 WORKDIR /tmp
 RUN wget http://downloadarchive.documentfoundation.org/libreoffice/old/6.3.3.1/deb/x86_64/LibreOffice_6.3.3.1_Linux_x86-64_deb.tar.gz -O libo.tar.gz
@@ -9,7 +9,7 @@ RUN apt update \
 WORKDIR LibreOffice_6.3.3.1_Linux_x86-64_deb/DEBS
 RUN dpkg -i *.deb && rm -r /tmp/*
 
-RUN mkdir /tmp-reports
+RUN mkdir /tmp/reports
 COPY . /carbone-api
 WORKDIR /carbone-api
 RUN npm install

@@ -1,0 +1,5 @@
+# automatically generated data files
+testdata*.json
+
+# output file of API test script
+invoice.pdf
