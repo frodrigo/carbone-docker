@@ -15,11 +15,12 @@ RUN dpkg -i *.deb
 
 # install node package
 RUN mkdir -p /home/node/carbone-api/node_modules && chown -R node:node /home/node/carbone-api
-RUN mkdir /tmp/reports
 WORKDIR /home/node/carbone-api
 COPY package.json package-lock.json ./
 USER node
 RUN npm install
 COPY --chown=node:node . .
+
+# create cache directory
 EXPOSE 3030
 CMD node index
