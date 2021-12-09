@@ -2,10 +2,6 @@
 
 Embedded Carbone in a Docker image with simple REST API.
 
-## Authentication
-
-Requests require HTTP Basic Authentication. Username and password must be passed to the server process via the USERNAME and PASSWORD environment variables, otherwise it will exit immedately with a non-zero exit code and, thus, stop the container.
-
 ## E-Mail deployment
 
 Generated reports can be sent via E-Mail if the request has a _email_ field with a JSON object. The object can contain the following properties:
@@ -36,7 +32,7 @@ By default, generated files are sent directly to the client. Set the _STORAGE_PA
 
 ## How to consume exposed API ?
 
-~~The simpliest way to use this image is to use `node` and install [`carbone-connect` package](https://npmjs.org/carbone-connect).~~ We extended the API with authentication, so this doesn't work anymore. :(
+The simpliest way to use this image is to use `node` and install [`carbone-connect` package](https://npmjs.org/carbone-connect).
 
 ## From carbone.io website
 

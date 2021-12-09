@@ -5,30 +5,34 @@
   <title>Carbone Docker wrapper tester</title>
 </head>
 <body>
-  <form onsubmit="formatData()" action="/render" method="post" target="_blank" enctype="multipart/form-data">
+  <form onsubmit="formatJson()" action="/render" method="post" target="_self" enctype="multipart/form-data">
 
-    <input type="file" name="template" id="template">
-    <input type="hidden" name="data" id="data">
-    <input type="hidden" name="format" value="pdf">
-    <input type="hidden" name="outputName" value="test.pdf">
+    <input type="file" name="template" id="template"><br>
 
-    <textarea name="_data" id="_data" cols="30" rows="10">{"firstname":"John"}</textarea>
+    <textarea name="options" id="_options" cols="30" rows="10">{"convertTo":"pdf", "outputName": "report.pdf"}</textarea><br>
+    <textarea name="data" id="_data" cols="30" rows="10">{"recipient": {"name" : "John"}}</textarea><br>
 
-    <input type="submit" value="Générer">
+    <input type="submit" value="Generate">
 
   </form>
   <script>
-    function formatData() {
-      const _data = document.getElementById(`_data`).value;
-      let data = {};
 
+    function _formatJson(id) {
+      const _data = document.getElementById(id).value;
+      let data = JSON.parse(_data);
+  
+      document.getElementById(id).value = JSON.stringify(data);
+    }
+
+    function formatJson(e) {
       try {
-        data = JSON.parse(_data);
+      _formatData('data');
+      _formatData('options');
       } catch (e) {
+        e.preventDefault();
+        alert('Cannot parse data')
         console.error(`Cannot parse data : ${e}`);
       }
-
-      document.getElementById(`data`).value = JSON.stringify(data);
     }
   </script>
 </body>

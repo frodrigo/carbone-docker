@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "body-parser": "^1.18.3",
-    "carbone": "^2.1.0",
+    "carbone": "^3.2.3",
     "express": "^4.16.4",
     "express-basic-auth": "^1.2.0",
     "fs-extra": "^7.0.1",
@@ -20,7 +20,7 @@
     "telejson": "^3.0.3"
   },
   "devDependencies": {
-    "mailparser": "^2.7.7",
+    "mailparser": "^3.4.0",
     "smtp-server": "^3.5.0"
   }
 }

@@ -1,3 +1,6 @@
+# GitHub
+.github
+
 # dependencies
 node_modules
 
@@ -8,3 +11,4 @@ Dockerfile
 # VCS metadata
 .git
 .gitignore
+.vscode

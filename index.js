@@ -17,13 +17,6 @@ const { Storage } = require("./storage");
 const username = process.env.USERNAME || undefined;
 const password = process.env.PASSWORD || undefined;
 
-if (!username || !password) {
-  console.error(
-    "missing authentication credentials. Please pass USERNAME and PASSWORD environment variables"
-  );
-  process.exit(-1);
-}
-
 function configureStorage() {
   const rootPath = process.env.STORAGE_PATH;
 
@@ -74,13 +67,12 @@ const transport = nodemailer.createTransport(config.smtp);
 
 const storage = configureStorage();
 
-function auth() {
-  return basicAuth({
-    users: { [username]: password }
-  });
-}
 
-app.use(auth());
+if (username && password) {
+  app.use(basicAuth({
+      users: { [username]: password }
+  }));
+}
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -125,8 +117,7 @@ app.post("/render", upload.single(`template`), async (req, res) => {
   } catch (e) {}
 
   options.convertTo = options.convertTo || originalFormat;
-  options.outputName =
-    options.outputName || `${originalNameWOExt}.${options.convertTo}`;
+  options.outputName = options.outputName || `${originalNameWOExt}.${options.convertTo}`;
   if (typeof data !== `object` || data === null) {
     try {
       data = JSON.parse(req.body.data);
@@ -194,7 +185,7 @@ app.post("/render", upload.single(`template`), async (req, res) => {
           text: email.text,
           attachments: [
             {
-              filename: "report.pdf",
+              filename: options.outputName,
               content: report
             }
           ]
@@ -227,3 +218,13 @@ app.post("/render", upload.single(`template`), async (req, res) => {
 app.listen(port, () =>
   console.log(`Carbone wrapper listenning on port ${port}!`)
 );
+
+process.on('SIGINT', shutdown);
+
+// Do graceful shutdown
+function shutdown() {
+  console.log('graceful shutdown express');
+  app.close(function () {
+    console.log('closed express');
+  });
+}

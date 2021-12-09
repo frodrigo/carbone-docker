@@ -1,24 +1,21 @@
-FROM node:12
+FROM node:16-bullseye-slim
 
-ENV LIBREOFFICE_VERSION=6.3.3.1
-
-# install LibreOffice and its dependencies
 WORKDIR /tmp
-RUN wget -nv \
-  http://downloadarchive.documentfoundation.org/libreoffice/old/${LIBREOFFICE_VERSION}/deb/x86_64/LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_deb.tar.gz \
-  -O libo.tar.gz
-RUN apt update \
-  && apt install -y libxinerama1 libfontconfig1 libdbus-glib-1-2 libcairo2 libcups2 libglu1-mesa libsm6 unzip \
-  && tar -zxf libo.tar.gz
-WORKDIR /tmp/LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_deb/DEBS
-RUN dpkg -i *.deb
+RUN set -xe \
+  && apt-get update \
+  && apt-get -y --no-install-recommends install ca-certificates wget libxinerama1 libfontconfig1 libdbus-glib-1-2 libcairo2 libcups2 libglu1-mesa libsm6 \
+  && apt-get purge -y --auto-remove \
+  && wget https://download.documentfoundation.org/libreoffice/stable/7.2.4/deb/x86_64/LibreOffice_7.2.4_Linux_x86-64_deb.tar.gz && tar -zxvf LibreOffice_7.2.4_Linux_x86-64_deb.tar.gz
 
+WORKDIR /tmp/LibreOffice_7.2.4.1_Linux_x86-64_deb/DEBS
+RUN dpkg -i *.deb && rm -rf LibreOffice_7.2.4.1_Linux_x86-64_deb/
+ 
 # install node package
 RUN mkdir -p /home/node/carbone-api/node_modules && chown -R node:node /home/node/carbone-api
 WORKDIR /home/node/carbone-api
 COPY package.json package-lock.json ./
 USER node
-RUN npm install
+RUN npm ci
 COPY --chown=node:node . .
 
 # runtime server configuration, empty by default
@@ -33,3 +30,4 @@ ENV SMTP_UNSAFE=
 # run HTTP API server by default
 EXPOSE 3030
 CMD node index
+USER root
