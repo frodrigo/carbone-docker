@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Carbone Docker wrapper tester</title>
+</head>
+<body>
+  <form onsubmit="formatJson(event)" action="/render" method="post" target="_self" enctype="multipart/form-data">
+    <input type="file" name="template" id="template"><br>
+    <label>
+      <span>Use template.odt</span>
+      <input type="checkbox" onchange="useTemplate(event)">
+    </label><br>
+    <textarea name="options" placeholder="options" id="options" cols="30" rows="10">{"convertTo":"pdf", "outputName": "report.pdf"}</textarea><br>
+    <textarea name="data" placeholder="data" id="data" cols="30" rows="10">{"recipient": {"name" : "John"}}</textarea><br>
+    <textarea name="email" placeholder="email" id="email" cols="30" rows="10">{"to": ["test@example.de"], "subject": "Report" }</textarea><br>
+
+    <button type="submit">Generate</button>
+
+  </form>
+  <script>
+    function useTemplate(e) {
+      document.forms[0].action = '/render' +(e.target.checked ? '/template.odt' : '')
+      document.forms[0].template.disabled = e.target.checked;
+    }
+    function _formatJson(id) {
+      const el = document.getElementById(id);
+      let data = JSON.parse(el.value);
+
+      el.value = JSON.stringify(data, null , 2);
+    }
+
+    function formatJson(event) {
+      try {
+        _formatJson('data');
+        _formatJson('options');
+        _formatJson('email');
+      } catch (e) {
+        event.preventDefault();
+        alert('Cannot parse data')
+        console.error(e);
+      }
+    }
+  </script>
+</body>
+</html>

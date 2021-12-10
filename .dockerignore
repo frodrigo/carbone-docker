@@ -12,3 +12,7 @@ Dockerfile
 .git
 .gitignore
 .vscode
+carbone-docker.iml
+docker-compose.yml
+
+templates

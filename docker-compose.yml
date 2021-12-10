@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  carbone:
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      - TESTSITE=true
+      - STORAGE_PATH=/home/node/carbone-api/storage
+      - DEBUG=carbone:*
+      - SMTP_HOST=mail
+      - SMTP_SENDER=carbone@example.com
+      - SMTP_PORT=1025
+    volumes:
+      - ./templates:/home/node/carbone-api/templates:ro
+      - storage:/home/node/carbone-api/storage
+    ports:
+      - "8080:3030"
+
+  # smtp testing
+  mail:
+    image: mailhog/mailhog
+    restart: unless-stopped
+    ports:
+      - "1030:1025" # smtp
+      - "8052:8025" # web
+
+volumes:
+  storage:

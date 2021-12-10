@@ -1,92 +1,40 @@
 const path = require(`path`);
 const fs = require(`fs-extra`);
-const _ = require(`lodash`);
 const util = require(`util`);
 const carbone = require(`carbone`);
-const telejson = require(`telejson`);
 const express = require(`express`);
 const bodyParser = require(`body-parser`);
 const app = express();
-const upload = require(`multer`)({ dest: `/tmp/uploads/` });
+const upload = require(`multer`)({dest: `/tmp/uploads/`});
 const port = process.env.CARBONE_PORT || 3030;
-const basicAuth = require("express-basic-auth");
-const nodemailer = require("nodemailer");
+const basicAuth = require('express-basic-auth');
 
-const { Storage } = require("./storage");
+const {configureStorage, getOptions, sendMail, getData, sendReport} = require('./utils');
 
 const username = process.env.USERNAME || undefined;
 const password = process.env.PASSWORD || undefined;
-
-function configureStorage() {
-  const rootPath = process.env.STORAGE_PATH;
-
-  if (!rootPath) {
-    console.log(
-      "no file storage configured; generated files will not be stored."
-    );
-    return undefined;
-  }
-
-  const storage = new Storage(rootPath);
-
-  storage.validate();
-  console.log(`working file storage on ${rootPath} configured`);
-
-  return storage;
-}
-
-function configureSmtp() {
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASSWORD;
-
-  const host = process.env.SMTP_HOST;
-  const port = process.env.SMTP_PORT && parseInt(process.env.SMTP_PORT);
-
-  const unsafe = process.env.SMTP_UNSAFE;
-
-  const auth = user && pass ? { user, pass } : undefined;
-
-  const smtp = {
-    ignoreTLS: unsafe,
-    auth,
-    host,
-    port
-  };
-
-  const config = {
-    user,
-    smtp
-  };
-
-  return config;
-}
-
-const config = configureSmtp();
-
-const transport = nodemailer.createTransport(config.smtp);
+const templatesDir = process.env.TEMPLATES || './templates/';
 
 const storage = configureStorage();
 
-
 if (username && password) {
   app.use(basicAuth({
-      users: { [username]: password }
+    users: {[username]: password}
   }));
 }
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 
 const render = util.promisify(carbone.render);
 
-// Flagging default formatters to remove custom ones later
-_.forEach(carbone.formatters, formatter => (formatter.$isDefault = true));
+if (process.env.TESTSITE) {
+  app.get('/', (req, res) => {
+    res.sendFile(path.resolve(`./demo/test.html`));
+  });
+}
 
-app.get("/", (req, res) => {
-  res.sendFile(path.resolve(`./test.html`));
-});
-
-app.get("/files/:hash", async (req, res) => {
+app.get('/files/:hash', async (req, res) => {
   if (!storage) {
     return res.sendStatus(404);
   }
@@ -97,122 +45,51 @@ app.get("/files/:hash", async (req, res) => {
   }
 
   const filePath = storage.path(hash);
-  res.setHeader("Content-Disposition", 'attachment; filename="report.pdf"');
+  res.setHeader('Content-Disposition', 'attachment; filename="report.pdf"');
   res.sendFile(filePath);
 });
 
-app.post("/render", upload.single(`template`), async (req, res) => {
-  const template = req.file;
-  const originalNameWOExt = template.originalname
-    .split(`.`)
-    .slice(0, -1)
-    .join(`.`);
-  const originalFormat = template.originalname.split(`.`).reverse()[0];
-  let data = req.body.data;
-  let options = {};
-  let customFormatters = {};
-
-  try {
-    options = JSON.parse(req.body.options);
-  } catch (e) {}
-
-  options.convertTo = options.convertTo || originalFormat;
-  options.outputName = options.outputName || `${originalNameWOExt}.${options.convertTo}`;
-  if (typeof data !== `object` || data === null) {
-    try {
-      data = JSON.parse(req.body.data);
-    } catch (e) {
-      data = {};
-    }
+app.post('/render/:template?', upload.single(`template`), async (req, res) => {
+  if (!req.file && !req.params.template) {
+    return res.sendStatus(400);
   }
 
-  try {
-    customFormatters = telejson.parse(req.body.formatters);
-  } catch (e) {}
+  const templatePath = req.file ? req.file.path : path.resolve(`${templatesDir}${req.params.template}`);
+  const templateName = req.file ? req.file.originalname : req.params.template;
 
-  const defaultFormatters = {};
+  const options = getOptions(req.body.options, templateName);
+  const data = getData(req);
 
-  // Of all formatters filter out the ones that were marked with $default
-  for (const name in carbone.formatters) {
-    const formatterFunc = carbone.formatters[name];
-    if (formatterFunc.$isDefault) {
-      defaultFormatters[name] = formatterFunc;
-    }
-  }
+  console.log('Options', options)
+  console.log('Data', data)
 
-  // Replace all formatters with only the default formatters
-  carbone.formatters = defaultFormatters;
-
-  // Then add custom formatters that may have been provided inside the POST request
-  carbone.addFormatters(customFormatters);
-
+  console.time('render time');
   let report = null;
-
   try {
-    report = await render(template.path, data, options);
+    report = await render(templatePath, data, options);
   } catch (e) {
     console.log(e);
     return res.status(500).send(`Internal server error`);
-  }
-
-  fs.remove(template.path);
-
-  /* ------------------------------------------------------
-  Send mail, if requested
-  ------------------------------------------------------ */
-
-  if (req.body.email) {
-    try {
-      const email = JSON.parse(req.body.email);
-      if (!Array.isArray(email.to)) {
-        throw new Error(`email.to is not an array`);
-      }
-      if (email.to.some(entry => typeof entry !== "string")) {
-        throw new Error(`email.to contains non-string entries`);
-      }
-      if (!email.subject || !(typeof email.subject === "string")) {
-        throw new Error(`email.subject is missing or not a string`);
-      }
-      if (!email.subject || !(typeof email.subject === "string")) {
-        throw new Error(`email.text is missing or not a string`);
-      }
-
-      if (email.to.length > 0) {
-        await transport.sendMail({
-          from: config.user,
-          to: email.to,
-          subject: email.subject,
-          text: email.text,
-          attachments: [
-            {
-              filename: options.outputName,
-              content: report
-            }
-          ]
-        });
-      } else {
-        console.info(`no email recipients given, won't send any mails`);
-      }
-    } catch (e) {
-      console.error(`cannot send emails: ${e}`);
+  } finally {
+    if (req.file) {
+      fs.remove(templatePath);
     }
   }
+  console.timeEnd('render time');
 
-  if (storage) {
+  sendMail(req, options.outputName, report).then(() => {
+    console.log('Email was send')
+  }).catch(e => {
+    console.log(e)
+  });
+
+/*  if (storage) {
     const id = storage.store(report);
-    res.setHeader("Location", `/files/${id}`);
+    res.setHeader('Location', `/files/${id}`);
     return res.sendStatus(301);
-  }
+  }*/
 
-  res.setHeader(
-    `Content-Disposition`,
-    `attachment; filename=${options.outputName}`
-  );
-  res.setHeader(`Content-Transfer-Encoding`, `binary`);
-  res.setHeader(`Content-Type`, `application/octet-stream`);
-  res.setHeader(`Carbone-Report-Name`, options.outputName);
-
-  return res.send(report);
+  return sendReport(res, options, report);
 });
 
 app.listen(port, () =>
@@ -223,8 +100,8 @@ process.on('SIGINT', shutdown);
 
 // Do graceful shutdown
 function shutdown() {
-  console.log('graceful shutdown express');
+  console.log('graceful shutdown Carbone');
   app.close(function () {
-    console.log('closed express');
+    console.log('closed Carbone');
   });
 }
