@@ -13,5 +13,4 @@ curl -f --location\
   -F "template=@${TEMPLATE_FILE};type=application/vnd.oasis.opendocument.text"\
   -F data="$DATA"\
   -F options='{"convertTo":"pdf"}'\
-  -F email='{"to":["tom@example.com", "jerry@example.com"],"subject":"Your Report is Ready!","text":"We prepared a document for you.\n\nBest Regards,\nThe Kodira Automatons."}'\
   ${URL} --output ${OUTPUT_FILE}

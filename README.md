@@ -2,34 +2,6 @@
 
 Embedded Carbone in a Docker image with simple REST API.
 
-## E-Mail deployment
-
-Generated reports can be sent via E-Mail if the request has a _email_ field with a JSON object. The object can contain the following properties:
-
-- _to: string[]_ - an Array of strings containing email addresses to which the mail is sent. If left out, empty or invalid, no emails will be sent.
-- _subject: string_ - used as a subject line on all sent mails
-- _text: string_ - used as the plaintext message body on all sent mails
-
-The SMTP client connection can be configured by a set of environment variables:
-
-- _SMTP_HOST_, _SMTP_PORT_ - host and port to connect to
-- _SMTP_USER_ - username for SMTP authentication and as sender in messages' _FROM_ field
-- _SMTP_PASSWORD_ - password for SMTP authentication
-- _SMTP_UNSAFE_: if left undefined or empty (default), will attempt to use TLS encryption.
-
-You can execute `npm run smtp-dummy` to launch a local dummy SMTP server that will log all received mails to standard output.
-
-Executing `local-run.sh` will setup all environment variables to connect to it and launch the API server.
-
-## File Storage
-
-By default, generated files are sent directly to the client. Set the _STORAGE_PATH_ environment variable to a writable location and they will be stored there.
-
-- each file will be content-hashed
-- generated files it will be stored as `<STORAGE_PATH>/<hash>/result.pdf`
-- files will be retrievable via HTTP GET (authenticated) on `/files/<hash>`
-- requests to `/render` will not get the file in the response body. Instead, they will be redirected to the above location (status code 301).
-
 ## How to consume exposed API ?
 
 The simpliest way to use this image is to use `node` and install [`carbone-connect` package](https://npmjs.org/carbone-connect).

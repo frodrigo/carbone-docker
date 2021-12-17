@@ -13,7 +13,6 @@
     </label><br>
     <textarea name="options" placeholder="options" id="options" cols="30" rows="10">{"convertTo":"pdf", "outputName": "report.pdf"}</textarea><br>
     <textarea name="data" placeholder="data" id="data" cols="30" rows="10">{"recipient": {"name" : "John"}}</textarea><br>
-    <textarea name="email" placeholder="email" id="email" cols="30" rows="10">{"to": ["test@example.de"], "subject": "Report" }</textarea><br>
 
     <button type="submit">Generate</button>
 
@@ -34,7 +33,6 @@
       try {
         _formatJson('data');
         _formatJson('options');
-        _formatJson('email');
       } catch (e) {
         event.preventDefault();
         alert('Cannot parse data')
