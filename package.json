@@ -3,15 +3,22 @@
   "version": "0.1.0",
   "description": "All what you need to build a standalone carbone.io Docker image",
   "main": "index.js",
-  "author": "Florian Bezagu <florian@bezagu.com>",
+  "author": "Daniil Tomilow <daniil.tomilow@gmail.com>",
+  "contributors": [{
+    "name": "Florian Bezagu <florian@bezagu.com>"
+  }],
   "license": "MIT",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "release": "standard-version -t ''"
   },
   "dependencies": {
     "carbone": "^3.2.3",
     "fastify": "^3.24.1",
     "fastify-multer": "^2.0.2",
     "fs-extra": "^7.0.1"
+  },
+  "devDependencies": {
+    "standard-version": "^9.3.2"
   }
 }
