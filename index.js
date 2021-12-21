@@ -2,24 +2,44 @@ const path = require(`path`);
 const fs = require(`fs-extra`);
 const util = require(`util`);
 const carbone = require(`carbone`);
-const fastify = require(`fastify`)({
+const {tmpdir} = require('os');
+const crypto = require('crypto');
+const fastify = require('fastify')({
   logger: true
 });
-const multer = require(`fastify-multer`);
+const multer = require('fastify-multer');
+const mkdirp = require('mkdirp');
+const mimeTypes = require('mime-types');
+const {replaceImages} = require('./images');
 
 let maxFileSize = !isNaN(process.env.MAX_FILESIZE) ? parseInt(process.env.MAX_FILESIZE, 10) : 10000000; // 10 MB;
 maxFileSize = maxFileSize === 0 ? Infinity : maxFileSize; // 10 MB;
+
+const PORT = process.env.PORT || 3030;
+const TEMP_DIR = tmpdir();
+const TEMPLATES_DIR = process.env.TEMPLATES_DIR || './templates/';
+const UPLOAD_DIR = process.env.UPLOAD_DIR || path.resolve(TEMP_DIR, 'carbone', 'uploads/');
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    mkdirp.sync(UPLOAD_DIR);
+    cb(null, UPLOAD_DIR);
+  },
+  filename: function (req, file, cb) {
+    const ext = file.originalname.split('.').pop() || '';
+    cb(null, crypto.randomBytes(48).toString('base64url') + '.' + ext)
+  }
+});
 const upload = multer({
-  dest: process.env.UPLOAD_DIR || `/tmp/uploads/`,
+  storage,
   limits: {
     fileSize: maxFileSize,
     files: 1
   }
 });
 
-const PORT = process.env.PORT || 3030;
-const templatesDir = process.env.TEMPLATES_DIR || './templates/';
 const render = util.promisify(carbone.render);
+const copyFile = util.promisify(fs.copyFile);
 
 fastify.register(multer.contentParser)
 
@@ -31,21 +51,39 @@ if (process.env.DEMO) {
   });
 }
 
-fastify.post('/render/:template?', {preHandler: upload.single('template')}, async function (req, reply) {
+function getTemplatePath(req) {
+  if (req.file) {
+    return Promise.resolve(req.file.path);
+  }
+
+  const templateName = req.params.template;
+
+  const templatePath = path.resolve(TEMPLATES_DIR, templateName);
+  const ext = templatePath.split('.').pop() || '';
+  const dest = path.resolve(TEMP_DIR, 'carbone', crypto.randomBytes(48).toString('base64url') + '.' + ext);
+
+  return copyFile(templatePath, dest).then(() => dest);
+}
+
+
+fastify.post('/render/:template?', {
+  preHandler: upload.single('template')
+}, async function (req, reply) {
   if (!req.file && !req.params.template) {
     return reply.status(400);
   }
 
-  const templatePath = req.file ? req.file.path : path.resolve(templatesDir, req.params.template);
   const templateName = req.file ? req.file.originalname : req.params.template;
-
   const options = getOptions(req.body.options, templateName);
   const data = getJson(req.body.data);
+  const images = getJson(req.body.images, []);
 
   fastify.log.info({options}, 'Options')
-
   let report = null;
+  let templatePath = null;
   try {
+    templatePath = await getTemplatePath(req);
+    replaceImages(images, templatePath, fastify.log);
     report = await render(templatePath, data, options);
   } catch (e) {
     fastify.log.error(e);
@@ -55,10 +93,10 @@ fastify.post('/render/:template?', {preHandler: upload.single('template')}, asyn
       return reply.status(415).send(e);
     }
 
-    return reply.status(500).send(typeof e === 'string' ? e : 'Internal Server Error');
+    return reply.status(500).send(typeof e === 'string' ? e : e.message || 'Internal Server Error');
   } finally {
-    if (req.file) {
-      fastify.log.info({templatePath}, 'Delete uploaded file')
+    if (templatePath) {
+      fastify.log.info({templatePath}, 'Delete tmp file')
       fs.remove(templatePath);
     }
   }
@@ -85,7 +123,7 @@ function getOptions(optionsStr, templateName) {
   return options;
 }
 
-function getJson(data) {
+function getJson(data, def = {}) {
   if (data && typeof data !== `object`) {
     try {
       return JSON.parse(data);
@@ -93,7 +131,7 @@ function getJson(data) {
       return {};
     }
   }
-  return data || {};
+  return data || def;
 }
 
 const serve = async () => {

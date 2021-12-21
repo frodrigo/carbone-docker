@@ -10,7 +10,6 @@ services:
       - DEBUG=carbone:*
     volumes:
       - ./templates:/home/node/carbone-api/templates:ro
-      - storage:/home/node/carbone-api/storage
     ports:
       - "8080:3030"
 
