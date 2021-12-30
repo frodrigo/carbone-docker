@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/dantio/carbone-docker/compare/0.1.0...0.1.1) (2021-12-30)
+
+
+### Features
+
+* image replacement ([a0f5f26](https://github.com/dantio/carbone-docker/commit/a0f5f26d0e553f9299d9c05f407ac29817336572))
+
 ## 0.1.0 (2021-12-17)
 
 
