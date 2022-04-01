@@ -14,3 +14,17 @@ _... using your JSON data as input._
 
 See [carbone.io website](https://carbone.io) for full **Carbone** documentation.
 
+
+## Docker setup
+
+Build docker image
+```
+docker-compose build
+```
+
+Set doc templates in `templates` directory.
+
+Run docker
+```
+docker-compose up
+```
