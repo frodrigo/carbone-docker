@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.2](https://github.com/dantio/carbone-docker/compare/0.1.1...0.1.2) (2022-04-12)
+
+
+### Bug Fixes
+
+* create TEMP_DIR if it's not exists ([996f150](https://github.com/dantio/carbone-docker/commit/996f150f87bba75fca9d201ba2b80956dc51cf34))
+
 ### [0.1.1](https://github.com/dantio/carbone-docker/compare/0.1.0...0.1.1) (2021-12-30)
 
 
