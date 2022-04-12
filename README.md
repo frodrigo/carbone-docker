@@ -49,4 +49,5 @@ Set doc templates in `templates` directory.
 Run docker
 ```
 docker-compose up
+# open http://localhost:8080/
 ```
