@@ -40,6 +40,7 @@ const upload = multer({
 
 const render = util.promisify(carbone.render);
 const copyFile = util.promisify(fs.copyFile);
+carbone.set({templatePath: TEMPLATES_DIR}); // With desired side effect to load translations
 
 fastify.register(multer.contentParser)
 
