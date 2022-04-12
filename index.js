@@ -61,6 +61,7 @@ function getTemplatePath(req) {
 
   const templatePath = path.resolve(TEMPLATES_DIR, templateName);
   const ext = templatePath.split('.').pop() || '';
+  mkdirp.sync(path.resolve(TEMP_DIR, 'carbone'));
   const dest = path.resolve(TEMP_DIR, 'carbone', crypto.randomBytes(48).toString('base64url') + '.' + ext);
 
   return copyFile(templatePath, dest).then(() => dest);
