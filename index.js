@@ -85,7 +85,7 @@ fastify.post('/render/:template?', {
   let templatePath = null;
   try {
     templatePath = await getTemplatePath(req);
-    replaceImages(images, templatePath, fastify.log);
+    await replaceImages(images, templatePath, fastify.log);
     report = await render(templatePath, data, options);
   } catch (e) {
     fastify.log.error(e);
