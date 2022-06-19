@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/dantio/carbone-docker/compare/0.1.3...0.1.4) (2022-06-19)
+
+
+### Features
+
+* add resize options to image ([b64302c](https://github.com/dantio/carbone-docker/commit/b64302c08bd509e647d8773cd4df77bf46658bb5))
+
 ### [0.1.3](https://github.com/dantio/carbone-docker/compare/0.1.2...0.1.3) (2022-06-19)
 
 
