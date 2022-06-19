@@ -9,7 +9,7 @@ services:
       - DEMO=true
       - DEBUG=carbone:*
     volumes:
-      - ./templates:/home/node/carbone-api/templates:ro
+      - ./templates:/home/node/carbone-api/templates
     ports:
       - "8080:3030"
 
