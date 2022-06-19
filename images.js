@@ -35,19 +35,26 @@ function imagePath(mimeType, image, index, log) {
   return path;
 }
 
+const defaultResizeOptions = {
+  fit: 'contain',
+  background: {r: 255, g: 255, b: 255, alpha: 1},
+};
 
-async function scaleImage(originalImage, newImage) {
+async function scaleImage(originalImage, newImage, resize) {
   const originalMetadata = await sharp(originalImage).metadata();
+  if (resize === false) {
+    return newImage;
+  }
+
+  const options = typeof resize === 'object' ? {...defaultResizeOptions, ...resize} : defaultResizeOptions;
+
   return await sharp(newImage)
     .resize(
       originalMetadata.width,
-      originalMetadata.height, {
-      fit: 'contain',
-      background: {r: 255, g: 255, b: 255, alpha: 1},
-    })
+      originalMetadata.height,
+      options)
     .toBuffer();
 }
-
 
 async function replaceImages(images, templatePath, log) {
   if (!Array.isArray(images)) {
@@ -82,7 +89,7 @@ async function replaceImages(images, templatePath, log) {
     try {
       const originalImage = entry.getData();
       const newImage = Buffer.from(data, 'base64');
-      const scaledImage = await scaleImage(originalImage, newImage);
+      const scaledImage = await scaleImage(originalImage, newImage, image.resize);
 
       zip.addFile(path, scaledImage);
       log.info({path}, 'Image replaced.');
