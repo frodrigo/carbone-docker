@@ -1,6 +1,6 @@
 FROM node:16-bullseye-slim
 
-ENV LO_VER=7.2.6
+ENV LO_VER=24.8.4
 
 WORKDIR /tmp
 RUN set -xe \
